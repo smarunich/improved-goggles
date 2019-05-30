@@ -9,15 +9,7 @@ aptcmd="sudo DEBIAN_FRONTEND=noninteractive apt-get -y install"
 if [ "$ID" == "centos" ] || [ "$ID" == "rhel" ]; then
     echo "*Running for CentOS or RHEL"
     if [ "$ID" == "rhel" ]; then
-        sudo subscription-manager register --force --username=sergey.avinetworks --password=AviNetworks123!
         sudo rpm -ihv https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-        sudo subscription-manager attach --pool=8a85f99c67105a9d0167120171e87164
-        cmd=$subscriptioncmd
-        $cmd --enable="rhel-7-server-ansible-2.6-rpms"
-        $cmd --enable="rhel-7-server-rpms"
-        $cmd --enable="rhel-7-server-rh-common-rpms"
-        $cmd --enable="rhel-7-server-extras-rpms"
-        $cmd --enable="rhel-7-server-optional-rpms"
     fi
     cmd=$yumcmd
     $cmd epel-release
