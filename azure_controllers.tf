@@ -44,6 +44,7 @@ resource "azurerm_virtual_machine" "ctrl" {
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "StandardSSD_LRS"
+    disk_size_gb      =  var.vol_size_avi
   }
 
   storage_image_reference {

@@ -36,3 +36,8 @@ resource "azurerm_subnet" "avi_mgmtnet" {
   virtual_network_name = azurerm_virtual_network.avi_vnet.name
   address_prefix       = cidrsubnet(var.vnet_cidr, 8, 2)
 }
+
+resource "tls_private_key" "generated_access_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}

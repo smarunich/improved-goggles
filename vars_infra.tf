@@ -8,17 +8,17 @@ variable "vnet_cidr" {
 
 variable "flavour_centos" {
   description = "AWS instance type for servers etc"
-  default     = "Standard_F1s"
+  default     = "Standard_F2s"
 }
 
 variable "flavour_avi" {
   description = "AWS instance type for Avi controllers"
-  default     = "Standard_F8s"
+  default     = "Standard_DS4_v2"
 }
 
 variable "vol_size_centos" {
   description = "Volume size for instances in G"
-  default     = "15"
+  default     = "30"
 }
 
 variable "vol_size_avi" {
