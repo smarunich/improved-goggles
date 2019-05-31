@@ -50,79 +50,25 @@ resource "azurerm_virtual_machine" "jumpbox" {
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "StandardSSD_LRS"
-   #disk_size_gb      =  var.vol_size_centos
+    #disk_size_gb      =  var.vol_size_centos
   }
 
 
   os_profile {
     computer_name   = "${var.id}-jumpbox"
     admin_username  = var.avi_backup_admin_username
-    custom_data     = "${data.template_cloudinit_config.jumpbox.rendered}"
   }
 
   os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
-      path     = "/home/"${var.avi_backup_admin_username}/.ssh/authorized_keys"
+      path     = "/home/${var.avi_backup_admin_username}/.ssh/authorized_keys"
       key_data = "${trimspace(tls_private_key.generated_access_key.public_key_openssh)} aviadmin@avinetworks"
     }
   }
 
   identity {
     type = "SystemAssigned"
-  }
-
-  connection {
-    host        = azurerm_public_ip.jumpbox_eip.ip_address
-    type        = "ssh"
-    user        = var.avi_ssh_admin_username
-    private_key = tls_private_key.generated_access_key.private_key_pem
-  }
-
-  provisioner "file" {
-    source      = "provisioning/bootstrap"
-    destination = "/opt/bootstrap"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/handle_bootstrap.py"
-    destination = "/usr/local/bin/handle_bootstrap.py"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/handle_bootstrap.service"
-    destination = "/etc/systemd/system/handle_bootstrap.service"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/handle_register.py"
-    destination = "/usr/local/bin/handle_register.py"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/handle_register.service"
-    destination = "/etc/systemd/system/handle_register.service"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/create_backup_user.yml"
-    destination = "/root/create_backup_user.yml"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/ansible_inventory.py"
-    destination = "/etc/ansible/hosts"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/cleanup_controllers.py"
-    destination = "/usr/local/bin/cleanup_controllers.py"
-  }
-
-  provisioner "remote-exec" {
-    scripts = [
-      "provisioning/provision_jumpbox.sh",
-    ]
   }
 
   tags = {
@@ -141,8 +87,8 @@ resource "azurerm_virtual_machine" "jumpbox" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "jumpbox" {
-  name                 = "${var.id}-jumpbox"
+resource "azurerm_virtual_machine_extension" "provision_jumpbox" {
+  name                 = "${var.id}-provision_jumpbox"
   location             = var.location
   resource_group_name  = azurerm_resource_group.avi_resource_group.name
   virtual_machine_name = azurerm_virtual_machine.jumpbox.name
@@ -151,8 +97,8 @@ resource "azurerm_virtual_machine_extension" "jumpbox" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/scripts/main.sh"],
-        "commandToExecute": "./main.sh"
+        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/bootstrap/provision_jumpbox.sh"],
+        "commandToExecute": "./provision_jumpbox.sh"
     }
 SETTINGS
 
