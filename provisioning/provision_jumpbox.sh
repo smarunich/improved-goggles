@@ -29,7 +29,7 @@ pip install /tmp/ansible-runner/
 
 cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/cleanup_controllers.py
 sudo mv /tmp/cleanup_controllers.py /usr/local/bin/
-sudo chmod 755 /tmp/cleanup_controllers.py
+sudo chmod 755 /usr/local/bin/cleanup_controllers.py
 
 systemctl daemon-reload
 systemctl enable redis

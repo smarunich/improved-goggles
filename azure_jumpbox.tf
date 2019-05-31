@@ -87,8 +87,8 @@ resource "azurerm_virtual_machine" "jumpbox" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "provision_jumpbox" {
-  name                 = "${var.id}-provision_jumpbox"
+resource "azurerm_virtual_machine_extension" "jumpbox" {
+  name                 = "${var.id}-jumpbox"
   location             = var.location
   resource_group_name  = azurerm_resource_group.avi_resource_group.name
   virtual_machine_name = azurerm_virtual_machine.jumpbox.name
