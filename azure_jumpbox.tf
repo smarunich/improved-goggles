@@ -1,19 +1,5 @@
 # Terraform definition for the lab Controllers
 
-data "template_file" "jumpbox" {
-  template = file("${path.module}/cloudinit/jumpbox.cloudinit")
-}
-
-data "template_cloudinit_config" "jumpbox" {
-  gzip          = true
-  base64_encode = true
-
-  part {
-    content_type = "text/cloud-config"
-    content      = "${data.template_file.jumpbox.rendered}"
-  }
-}
-
 resource "azurerm_public_ip" "jumpbox_eip" {
   name                         =  "${var.id}_jumpbox_eip"
   location                     = var.location
@@ -64,7 +50,7 @@ resource "azurerm_virtual_machine" "jumpbox" {
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "StandardSSD_LRS"
-    disk_size_gb      =  var.vol_size_centos
+   #disk_size_gb      =  var.vol_size_centos
   }
 
 
@@ -77,7 +63,7 @@ resource "azurerm_virtual_machine" "jumpbox" {
   os_profile_linux_config {
     disable_password_authentication = true
     ssh_keys {
-      path     = "/home/aviadmin/.ssh/authorized_keys"
+      path     = "/home/"${var.avi_backup_admin_username}/.ssh/authorized_keys"
       key_data = "${trimspace(tls_private_key.generated_access_key.public_key_openssh)} aviadmin@avinetworks"
     }
   }
@@ -152,5 +138,25 @@ resource "azurerm_virtual_machine" "jumpbox" {
     Lab_avi_vip_network           = "${var.id}_VIP_network"
     Lab_Noshut                    = "jumpbox"
     Lab_Timezone                  = var.lab_timezone
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "jumpbox" {
+  name                 = "${var.id}-jumpbox"
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.avi_resource_group.name
+  virtual_machine_name = azurerm_virtual_machine.jumpbox.name
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+  settings = <<SETTINGS
+    {
+        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/scripts/main.sh"],
+        "commandToExecute": "./main.sh"
+    }
+SETTINGS
+
+  tags = {
+    Owner = var.owner
   }
 }
