@@ -25,7 +25,7 @@ sudo mv /tmp/ansible_inventory.py /etc/ansible/hosts
 sudo chmod 755 /etc/ansible/hosts
 git clone git://github.com/ansible/ansible-runner /tmp/ansible-runner
 pip install /tmp/ansible-runner/
-cp /etc/ansible/hosts /opt/bootstrap/inventory
+#cp /etc/ansible/hosts /opt/bootstrap/inventory
 
 cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/cleanup_controllers.py
 sudo mv /tmp/cleanup_controllers.py /usr/local/bin/
