@@ -34,13 +34,21 @@ class instance_tags(object):
             self.identity = identity()
         else:
             self.identity = identity(document=document)
-        self.ec2 = boto3.client('ec2', self.identity.region)
-        if self.identity.instanceId is not None:
-            tags = self.get_tags(self.identity.instanceId)
+        # AWS 
+        if 'instanceId' in self.identity().keys():
+            tags = self.get_aws_tags(self.identity.instanceId)
             for tag in tags:
                 setattr(self.identity, tag['Key'], tag['Value'])
+        # Azure
+        elif 'compute' in self.identity().keys():
+	    tags = self.identity()['compute']['tags']
+            for tag in tags.split(';'):
+                key = tag.split(':')[0]
+                value = tag.split(':')[1]
+                setattr(self.identity, key, value) 
 
-    def get_tags(self, instance_id):
+    def get_aws_tags(self, instance_id):
+        self.ec2 = boto3.client('ec2', self.identity.region)
         filter = {'Name': 'resource-id', 'Values': []}
         filter['Values'].append(instance_id)
         response = self.ec2.describe_tags(Filters=[filter])
@@ -93,7 +101,7 @@ if __name__ == '__main__':
     for m in p.listen():
         if m['type'] == 'message':
             data = json.loads(m['data'])
-            id = data.keys()[0]
+	    id = data.keys()[0]
             tags = instance_tags(document=data[id])
             hosts_file(tags.identity.privateIp, tags.identity.Lab_Name)
             if data[id]['public-ipv4']:
