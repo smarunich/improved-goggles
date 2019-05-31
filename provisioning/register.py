@@ -19,7 +19,6 @@ def get_url(url):
 
 redis_host = sys.argv[1]
 identity = get_url('http://169.254.169.254/metadata/instance?api-version=2017-08-01')
-print identity
 identity['Name'] = identity['compute']['name']
 identity['privateIp'] = identity['network']['interface'][0]['ipv4']['ipAddress'][0]['privateIpAddress']
 identity['public-ipv4'] = identity['network']['interface'][0]['ipv4']['ipAddress'][0]['publicIpAddress']
