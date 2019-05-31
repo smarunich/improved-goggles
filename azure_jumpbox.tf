@@ -71,6 +71,8 @@ resource "azurerm_virtual_machine" "jumpbox" {
     type = "SystemAssigned"
   }
 
+  depends_on        = [tls_private_key.generated_access_key, local_file.aviadmin_pem]
+
   tags = {
     Owner                         = var.owner
     Lab_Group                     = "jumpbox"

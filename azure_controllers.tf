@@ -67,5 +67,6 @@ resource "azurerm_virtual_machine" "ctrl" {
 
   tags = {
     Owner = var.owner
+    Lab_Timezone                  = var.lab_timezone
   }
 }
