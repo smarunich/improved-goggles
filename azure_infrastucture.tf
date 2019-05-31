@@ -41,3 +41,8 @@ resource "tls_private_key" "generated_access_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
+
+resource "random_string" "ssh_admin_password" {
+  length = 16
+  special = false
+}

@@ -32,7 +32,12 @@ variable "avi_default_password" {
 variable "avi_admin_password" {
 }
 
+variable "avi_ssh_admin_username" {
+  default = "aviadmin"
+}
+
 variable "avi_backup_admin_username" {
+  default = "aviadmin"
 }
 
 variable "avi_backup_admin_password" {

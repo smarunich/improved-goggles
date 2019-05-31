@@ -41,9 +41,9 @@ resource "azurerm_role_assignment" "avi_role_assignment" {
   principal_id       = lookup(azurerm_virtual_machine.ctrl[count.index].identity[0], "principal_id")
 }
 
-resource "azurerm_role_assignment" "jump_role_assignment" {
+resource "azurerm_role_assignment" "jumpbox_role_assignment" {
   scope              = azurerm_resource_group.avi_resource_group.id
   #role_definition_id = azurerm_role_definition.avi_role.id
   role_definition_name = "Contributor"
-  principal_id       = lookup(azurerm_virtual_machine.jump.identity[0], "principal_id")
+  principal_id       = lookup(azurerm_virtual_machine.jumpbox.identity[0], "principal_id")
 }

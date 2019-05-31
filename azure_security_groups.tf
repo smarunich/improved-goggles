@@ -53,8 +53,8 @@ resource "azurerm_network_security_group" "ctrl_sg" {
 }
 
 
-resource "azurerm_network_security_group" "jump_sg" {
-  name                = "jump_sg"
+resource "azurerm_network_security_group" "jumpbox_sg" {
+  name                = "jumpbox_sg"
   location            = var.location
   resource_group_name = azurerm_resource_group.avi_resource_group.name
 

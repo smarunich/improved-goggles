@@ -53,8 +53,8 @@ resource "azurerm_virtual_machine" "ctrl" {
 
   os_profile {
     computer_name = "student${count.index + 1}"
-    admin_username = var.avi_backup_admin_username
-    admin_password = var.avi_backup_admin_password
+    admin_username = var.avi_ssh_admin_username
+    admin_password = random_string.ssh_admin_password.result
   }
 
   os_profile_linux_config {

@@ -1,7 +1,21 @@
 # Terraform definition for the lab Controllers
 
-resource "azurerm_public_ip" "jump_eip" {
-  name                         =  "${var.id}_jump_eip"
+data "template_file" "jumpbox" {
+  template = file("${path.module}/cloudinit/jumpbox.cloudinit")
+}
+
+data "template_cloudinit_config" "jumpbox" {
+  gzip          = true
+  base64_encode = true
+
+  part {
+    content_type = "text/cloud-config"
+    content      = "${data.template_file.jumpbox.rendered}"
+  }
+}
+
+resource "azurerm_public_ip" "jumpbox_eip" {
+  name                         =  "${var.id}_jumpbox_eip"
   location                     = var.location
   resource_group_name          = azurerm_resource_group.avi_resource_group.name
   allocation_method           = "Dynamic"
@@ -10,28 +24,28 @@ resource "azurerm_public_ip" "jump_eip" {
   }
 }
 
-resource "azurerm_network_interface" "jump_nic" {
-  name                         =  "${var.id}_jump_nic"
+resource "azurerm_network_interface" "jumpbox_nic" {
+  name                         =  "${var.id}_jumpbox_nic"
   location                  = var.location
   resource_group_name       = azurerm_resource_group.avi_resource_group.name
-  network_security_group_id = azurerm_network_security_group.jump_sg.id
+  network_security_group_id = azurerm_network_security_group.jumpbox_sg.id
   ip_configuration {
-    name                         =  "${var.id}_jump_ip"
+    name                         =  "${var.id}_jumpbox_ip"
     subnet_id                     =  azurerm_subnet.avi_pubnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.jump_eip.id
+    public_ip_address_id          = azurerm_public_ip.jumpbox_eip.id
   }
   tags = {
     Owner = var.owner
   }
 }
 
-resource "azurerm_virtual_machine" "jump" {
+resource "azurerm_virtual_machine" "jumpbox" {
   name          = "${var.id}_jumpbox"
   location                  = var.location
   resource_group_name       = azurerm_resource_group.avi_resource_group.name
   vm_size                   = var.flavour_centos
-  network_interface_ids     = [ azurerm_network_interface.jump_nic.id ]
+  network_interface_ids     = [ azurerm_network_interface.jumpbox_nic.id ]
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
@@ -39,14 +53,14 @@ resource "azurerm_virtual_machine" "jump" {
 # az vm image list --output table
 
   storage_image_reference {
-    publisher = "OpenLogic"
-    offer     = "CentOS"
-    sku       = "7.5"
+    publisher = "RedHat"
+    offer     = "RHEL"
+    sku       = "7-RAW"
     version   = "latest"
   }
 
   storage_os_disk {
-    name              = "${var.id}_jump_ssd"
+    name              = "${var.id}_jumpbox_ssd"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "StandardSSD_LRS"
@@ -55,8 +69,9 @@ resource "azurerm_virtual_machine" "jump" {
 
 
   os_profile {
-    computer_name = "${var.id}-jumpbox"
-    admin_username = "aviadmin"
+    computer_name   = "${var.id}-jumpbox"
+    admin_username  = var.avi_backup_admin_username
+    custom_data     = "${data.template_cloudinit_config.jumpbox.rendered}"
   }
 
   os_profile_linux_config {
@@ -69,6 +84,59 @@ resource "azurerm_virtual_machine" "jump" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  connection {
+    host        = azurerm_public_ip.jumpbox_eip.ip_address
+    type        = "ssh"
+    user        = var.avi_ssh_admin_username
+    private_key = tls_private_key.generated_access_key.private_key_pem
+  }
+
+  provisioner "file" {
+    source      = "provisioning/bootstrap"
+    destination = "/opt/bootstrap"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_bootstrap.py"
+    destination = "/usr/local/bin/handle_bootstrap.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_bootstrap.service"
+    destination = "/etc/systemd/system/handle_bootstrap.service"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_register.py"
+    destination = "/usr/local/bin/handle_register.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_register.service"
+    destination = "/etc/systemd/system/handle_register.service"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/create_backup_user.yml"
+    destination = "/root/create_backup_user.yml"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/ansible_inventory.py"
+    destination = "/etc/ansible/hosts"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/cleanup_controllers.py"
+    destination = "/usr/local/bin/cleanup_controllers.py"
+  }
+
+  provisioner "remote-exec" {
+    scripts = [
+      "provisioning/provision_jumpbox.sh",
+    ]
   }
 
   tags = {
