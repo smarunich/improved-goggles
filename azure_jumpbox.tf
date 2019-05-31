@@ -97,7 +97,7 @@ resource "azurerm_virtual_machine_extension" "provision_jumpbox" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/bootstrap/provision_jumpbox.sh"],
+        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/provision_jumpbox.sh"],
         "commandToExecute": "./provision_jumpbox.sh"
     }
 SETTINGS
