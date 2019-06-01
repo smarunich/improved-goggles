@@ -80,9 +80,11 @@ resource "azurerm_virtual_machine_extension" "server" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-        "commandToExecute": "mkdir /root/.ssh && cp /home/aviadmin/.ssh/authorized_keys /root/.ssh/authorized_keys && curl -L http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/provision_vm.sh | bash && cd /usr/local/bin && curl -O http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/register.py && register.py ${azurerm_network_interface.jumpbox_nic.private_ip_address}"
+        "commandToExecute": "mkdir /root/.ssh && cp /home/aviadmin/.ssh/authorized_keys /root/.ssh/authorized_keys && curl -L http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/provision_vm.sh | bash && cd /usr/local/bin && curl -O http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/register.py && chmod a+x /usr/local/bin/register.py && register.py ${azurerm_network_interface.jumpbox_nic.private_ip_address}"
     }
 SETTINGS
+
+  depends_on        = [ null_resource.jumpbox_provisioner ]
 
   tags = {
     Owner = var.owner

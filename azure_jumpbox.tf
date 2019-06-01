@@ -154,23 +154,18 @@ resource "null_resource" "jumpbox_provisioner" {
   }
 
   provisioner "file" {
-    source      = "provisioning/cleanup_controllers.py"
-    destination = "/usr/local/bin/cleanup_controllers.py"
-  }
-
-  provisioner "file" {
     source      = "provisioning/provision_vm.sh"
-    destination = "/usr/share/nginx/html/provision_vm.sh"
-  }
-
-  provisioner "file" {
-    source      = "provisioning/register.py"
-    destination = "/usr/share/nginx/html/register.py"
+    destination = "/tmp/provision_vm.sh"
   }
 
   provisioner "file" {
     source      = "provisioning/register.py"
     destination = "/usr/local/bin/register.py"
+  }
+
+  provisioner "file" {
+    source      = "aviadmin.pem"
+    destination = "/root/.ssh/id_rsa"
   }
 
   provisioner "remote-exec" {
@@ -184,6 +179,6 @@ resource "null_resource" "jumpbox_provisioner" {
       "provisioning/provision_jumpbox.sh",
     ]
   }
-  depends_on        = [ tls_private_key.generated_access_key, azurerm_virtual_machine.jumpbox ]
+  depends_on        = [ local_file.aviadmin_pem, azurerm_virtual_machine.jumpbox, azurerm_virtual_machine_extension.jumpbox ]
 
 }

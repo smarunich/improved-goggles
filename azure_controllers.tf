@@ -72,3 +72,25 @@ resource "azurerm_virtual_machine" "ctrl" {
     Lab_Timezone                  = var.lab_timezone
   }
 }
+
+resource "azurerm_virtual_machine_extension" "ctrl" {
+  count                = var.server_count
+  name                 = "${var.id}_student${count.index + 1}_controller"
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.avi_resource_group.name
+  virtual_machine_name = azurerm_virtual_machine.ctrl[count.index].name
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+  settings = <<SETTINGS
+    {
+        "commandToExecute": "cd /tmp && curl -O http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/register.py && chmod a+x /tmp/register.py && /tmp/register.py ${azurerm_network_interface.jumpbox_nic.private_ip_address}"
+    }
+SETTINGS
+
+  depends_on        = [ null_resource.jumpbox_provisioner ]
+
+  tags = {
+    Owner = var.owner
+  }
+}
