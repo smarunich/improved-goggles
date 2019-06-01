@@ -155,6 +155,7 @@ resource "null_resource" "jumpbox_provisioner" {
     inline = [
       "yum install -y ansible",
   ]
+  }
 
   provisioner "file" {
     source      = "provisioning/ansible_inventory.py"
