@@ -48,7 +48,6 @@ resource "azurerm_virtual_machine" "server" {
   os_profile {
     computer_name = "server${count.index + 1}"
     admin_username = var.avi_ssh_admin_username
-    admin_password = random_string.ssh_admin_password.result
   }
 
   os_profile_linux_config {

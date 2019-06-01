@@ -7,7 +7,7 @@ resource "local_file" "aviadmin_pem" {
 }
 
 output "JumpHost_PublicIP" {
-  value = azurerm_public_ip.jumpbox_eip.ip_address
+  value = data.azurerm_public_ip.jumpbox_eip.ip_address
 }
 
 output "Jumphost_PrivateIP" {
@@ -15,7 +15,7 @@ output "Jumphost_PrivateIP" {
 }
 
 output "Controller_PublicIP" {
-  value = azurerm_public_ip.ctrl_eip.*.ip_address
+  value = data.azurerm_public_ip.ctrl_eip.*.ip_address
 }
 
 output "Controller_PrivateIP" {
@@ -28,4 +28,8 @@ output "Server_PrivateIP" {
 
 output "Generated_Access_Key" {
   value = tls_private_key.generated_access_key.private_key_pem
+}
+
+output "Generated_SSH_Controller_Password" {
+  value = random_string.ssh_admin_password.result
 }

@@ -11,6 +11,13 @@ resource "azurerm_public_ip" "ctrl_eip" {
   }
 }
 
+# to recapture the data required for provisioner
+data "azurerm_public_ip" "ctrl_eip" {
+  count  = var.student_count
+  name                         =  "${var.id}_student${count.index + 1}_ctrl_eip"
+  resource_group_name          = azurerm_resource_group.avi_resource_group.name
+}
+
 resource "azurerm_network_interface" "ctrl_nic" {
   count         = var.student_count
   name                      = "${var.id}_student${count.index + 1}_ctrl_nic"
@@ -69,7 +76,10 @@ resource "azurerm_virtual_machine" "ctrl" {
 
   tags = {
     Owner = var.owner
-    Lab_Timezone                  = var.lab_timezone
+    Lab_Group          = "controllers"
+    Lab_Name           = "controller.student${count.index + 1}.lab"
+    ansible_connection = "local"
+    Lab_Timezone       = var.lab_timezone
   }
 }
 
@@ -91,6 +101,6 @@ SETTINGS
   depends_on        = [ null_resource.jumpbox_provisioner ]
 
   tags = {
-    Owner = var.owner
+    Owner              = var.owner
   }
 }

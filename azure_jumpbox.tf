@@ -10,6 +10,13 @@ resource "azurerm_public_ip" "jumpbox_eip" {
   }
 }
 
+# to recapture the data required for provisioner
+data "azurerm_public_ip" "jumpbox_eip" {
+  name                         =  "${var.id}_jumpbox_eip"
+  resource_group_name          = azurerm_resource_group.avi_resource_group.name
+}
+
+
 resource "azurerm_network_interface" "jumpbox_nic" {
   name                         =  "${var.id}_jumpbox_nic"
   location                  = var.location
@@ -25,6 +32,7 @@ resource "azurerm_network_interface" "jumpbox_nic" {
     Owner = var.owner
   }
 }
+
 
 resource "azurerm_virtual_machine" "jumpbox" {
   name          = "${var.id}_jumpbox"
@@ -111,7 +119,7 @@ SETTINGS
 
 resource "null_resource" "jumpbox_provisioner" {
   connection {
-    host        = azurerm_public_ip.jumpbox_eip.ip_address
+    host        = data.azurerm_public_ip.jumpbox_eip.ip_address
     type        = "ssh"
     agent       = false
     user        = "root"
@@ -142,6 +150,11 @@ resource "null_resource" "jumpbox_provisioner" {
     source      = "provisioning/handle_register.service"
     destination = "/etc/systemd/system/handle_register.service"
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "yum install -y ansible",
+  ]
 
   provisioner "file" {
     source      = "provisioning/ansible_inventory.py"
