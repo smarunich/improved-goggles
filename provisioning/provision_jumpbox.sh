@@ -1,51 +1,32 @@
 #!/bin/bash -e
 
-curl -L https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/provision_vm.sh | bash
-
-cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/handle_bootstrap.py
-sudo mv /tmp/handle_bootstrap.py /usr/local/bin/
-sudo chmod 755 /usr/local/bin/handle_bootstrap.py
-
-cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/handle_bootstrap.service
-sudo mv /tmp/handle_bootstrap.service /etc/systemd/system/handle_bootstrap.service
-systemctl enable handle_bootstrap
-systemctl start handle_bootstrap
-
-cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/handle_register.py
-sudo mv /tmp/handle_register.py /usr/local/bin/
-sudo chmod 755 /usr/local/bin/handle_register.py
-
-cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/handle_register.service
-sudo mv /tmp/handle_register.service /etc/systemd/system/handle_register.service
-systemctl enable handle_register
-systemctl start handle_register
-
-cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/ansible_inventory.py
-sudo mv /tmp/ansible_inventory.py /etc/ansible/hosts
-sudo chmod 755 /etc/ansible/hosts
-git clone git://github.com/ansible/ansible-runner /tmp/ansible-runner
-pip install /tmp/ansible-runner/
-#cp /etc/ansible/hosts /opt/bootstrap/inventory
-
-cd /tmp && curl -O https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/cleanup_controllers.py
-sudo mv /tmp/cleanup_controllers.py /usr/local/bin/
-sudo chmod 755 /usr/local/bin/cleanup_controllers.py
-
 systemctl daemon-reload
 systemctl enable redis
 systemctl start redis
-
 systemctl enable squid
 systemctl start squid
-
 systemctl enable nginx
 systemctl start nginx
-cp /usr/local/bin/register.py /usr/share/nginx/html/
-
+pip install --upgrade avisdk
+ansible-galaxy install avinetworks.avisdk avinetworks.aviconfig --force
+git clone git://github.com/ansible/ansible-runner /tmp/ansible-runner
 yum install -y bind-utils vim tmux jq
+pip install /tmp/ansible-runner/
+chmod +x /usr/local/bin/handle_bootstrap.py
+chmod +x /usr/local/bin/handle_register.py
+chmod +x /usr/local/bin/cleanup_controllers.py
+systemctl enable handle_bootstrap
+systemctl enable handle_register
+systemctl start handle_bootstrap
+systemctl start handle_register
+chmod +x /etc/ansible/hosts
+
+sudo sed -i 's/^\(bind 127.0.0.1\)$/#\1/' /etc/redis.conf
+sudo sed -i 's/^\(protected-mode\) yes/\1 no/' /etc/redis.conf
+
+cp /usr/local/bin/register.py /usr/share/nginx/html/
+cp /etc/ansible/hosts /opt/bootstrap/inventory
 
 #Nasty, nasty, very very nasty...
 sleep 5
 /usr/local/bin/register.py localhost
-
-exit 0

@@ -73,6 +73,7 @@ resource "azurerm_virtual_machine" "jumpbox" {
 
   depends_on        = [tls_private_key.generated_access_key, local_file.aviadmin_pem]
 
+
   tags = {
     Owner                         = var.owner
     Lab_Group                     = "jumpbox"
@@ -90,7 +91,7 @@ resource "azurerm_virtual_machine" "jumpbox" {
 }
 
 resource "azurerm_virtual_machine_extension" "jumpbox" {
-  name                 = "${var.id}-jumpbox"
+  name                 = "${var.id}_jumpbox"
   location             = var.location
   resource_group_name  = azurerm_resource_group.avi_resource_group.name
   virtual_machine_name = azurerm_virtual_machine.jumpbox.name
@@ -99,12 +100,90 @@ resource "azurerm_virtual_machine_extension" "jumpbox" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/provision_jumpbox.sh"],
-        "commandToExecute": "./provision_jumpbox.sh"
+        "commandToExecute": "mkdir /root/.ssh & cp /home/aviadmin/.ssh/authorized_keys /root/.ssh/authorized_keys"
     }
 SETTINGS
 
   tags = {
     Owner = var.owner
   }
+}
+
+resource "null_resource" "jumpbox_provisioner" {
+  connection {
+    host        = azurerm_public_ip.jumpbox_eip.ip_address
+    type        = "ssh"
+    agent       = false
+    user        = "root"
+    private_key = tls_private_key.generated_access_key.private_key_pem
+  }
+
+  provisioner "file" {
+    source      = "provisioning/bootstrap"
+    destination = "/opt/bootstrap"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_bootstrap.py"
+    destination = "/usr/local/bin/handle_bootstrap.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_bootstrap.service"
+    destination = "/etc/systemd/system/handle_bootstrap.service"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_register.py"
+    destination = "/usr/local/bin/handle_register.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/handle_register.service"
+    destination = "/etc/systemd/system/handle_register.service"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/ansible_inventory.py"
+    destination = "/etc/ansible/hosts"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/cleanup_controllers.py"
+    destination = "/usr/local/bin/cleanup_controllers.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/cleanup_controllers.py"
+    destination = "/usr/local/bin/cleanup_controllers.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/provision_vm.sh"
+    destination = "/usr/share/nginx/html/provision_vm.sh"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/register.py"
+    destination = "/usr/share/nginx/html/register.py"
+  }
+
+  provisioner "file" {
+    source      = "provisioning/register.py"
+    destination = "/usr/local/bin/register.py"
+  }
+
+  provisioner "remote-exec" {
+    scripts = [
+      "provisioning/provision_vm.sh",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    scripts = [
+      "provisioning/provision_jumpbox.sh",
+    ]
+  }
+  depends_on        = [ tls_private_key.generated_access_key, azurerm_virtual_machine.jumpbox ]
+
 }

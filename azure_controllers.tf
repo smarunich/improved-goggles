@@ -65,6 +65,8 @@ resource "azurerm_virtual_machine" "ctrl" {
     type = "SystemAssigned"
   }
 
+  depends_on        = [ null_resource.jumpbox_provisioner ]
+
   tags = {
     Owner = var.owner
     Lab_Timezone                  = var.lab_timezone

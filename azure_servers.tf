@@ -1,14 +1,19 @@
 # Terraform definition for the lab Controllers
 resource "azurerm_network_interface" "server_nic" {
   count         = var.server_count
-  name                      = "server${count.index + 1}_nic"
+  name                      = "${var.id}_server${count.index + 1}_nic"
   location                  = var.location
   resource_group_name       = azurerm_resource_group.avi_resource_group.name
   network_security_group_id = azurerm_network_security_group.ctrl_sg.id
   ip_configuration {
-    name                          =  "server${count.index + 1}_ip"
+    name                          =  "${var.id}_server${count.index + 1}_ip"
     subnet_id                     =  azurerm_subnet.avi_privnet.id
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address =   format(
+    "%s%d",
+    cidrhost(azurerm_subnet.avi_privnet.address_prefix, 2),
+    count.index + 1,
+  )
   }
   tags = {
     Owner = var.owner
@@ -17,7 +22,7 @@ resource "azurerm_network_interface" "server_nic" {
 
 resource "azurerm_virtual_machine" "server" {
   count         = var.server_count
-  name          = "server${count.index + 1}"
+  name          = "${var.id}_server${count.index + 1}"
   location                  = var.location
   resource_group_name       = azurerm_resource_group.avi_resource_group.name
   vm_size                   = var.flavour_centos
@@ -34,7 +39,7 @@ resource "azurerm_virtual_machine" "server" {
   }
 
   storage_os_disk {
-    name              = "server${count.index + 1}_ssd"
+    name              = "${var.id}_server${count.index + 1}_ssd"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "StandardSSD_LRS"
@@ -54,7 +59,7 @@ resource "azurerm_virtual_machine" "server" {
     }
   }
 
-  depends_on        = [azurerm_virtual_machine.jumpbox]
+  depends_on        = [ null_resource.jumpbox_provisioner ]
 
   tags = {
     Owner                         = var.owner
@@ -66,7 +71,7 @@ resource "azurerm_virtual_machine" "server" {
 
 resource "azurerm_virtual_machine_extension" "server" {
   count                = var.server_count
-  name                 = "server${count.index + 1}"
+  name                 = "${var.id}_server${count.index + 1}"
   location             = var.location
   resource_group_name  = azurerm_resource_group.avi_resource_group.name
   virtual_machine_name = azurerm_virtual_machine.server[count.index].name
@@ -75,8 +80,7 @@ resource "azurerm_virtual_machine_extension" "server" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-        "fileUris": ["https://raw.githubusercontent.com/smarunich/improved-goggles/master/provisioning/provision_vm.sh"],
-        "commandToExecute": "./provision_vm.sh"
+        "commandToExecute": "mkdir /root/.ssh && cp /home/aviadmin/.ssh/authorized_keys /root/.ssh/authorized_keys && curl -L http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/provision_vm.sh | bash && cd /usr/local/bin && curl -O http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/register.py && register.py ${azurerm_network_interface.jumpbox_nic.private_ip_address}"
     }
 SETTINGS
 
