@@ -127,6 +127,10 @@ resource "null_resource" "jumpbox_provisioner" {
     private_key = tls_private_key.generated_access_key.private_key_pem
   }
 
+  provisioner "local-exec" {
+    command = "chmod 0600 aviadmin.pem"
+  }
+
   provisioner "file" {
     source      = "provisioning/bootstrap"
     destination = "/opt/bootstrap"

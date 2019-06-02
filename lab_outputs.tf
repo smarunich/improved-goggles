@@ -26,9 +26,10 @@ output "Server_PrivateIP" {
   value = azurerm_network_interface.server_nic.*.private_ip_address
 }
 
-#output "Generated_Access_Key" {
+output "Generated_Access_Key" {
+  value = "Please use generated aviadmin.pem key to access Jumphost by SSH"
 #  value = tls_private_key.generated_access_key.private_key_pem
-#}
+}
 
 output "Generated_SSH_Controller_Password" {
   value = random_string.ssh_admin_password.result

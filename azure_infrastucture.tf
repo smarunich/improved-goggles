@@ -44,5 +44,9 @@ resource "tls_private_key" "generated_access_key" {
 
 resource "random_string" "ssh_admin_password" {
   length = 16
-  special = false
+  min_special = 2
+  min_upper = 3
+  min_lower = 3
+  min_numeric = 3
 }
+
