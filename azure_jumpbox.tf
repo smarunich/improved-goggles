@@ -86,13 +86,14 @@ resource "azurerm_virtual_machine" "jumpbox" {
     Owner                         = var.owner
     Lab_Group                     = "jumpbox"
     Lab_Name                      = "jumpbox.student.lab"
-    Lab_vpc_id                    = azurerm_virtual_network.avi_vnet.id
+    Lab_vnet_id                   = azurerm_virtual_network.avi_vnet.id
+    Lab_subscription_id           = var.azure_subscription_id
     Lab_avi_default_password      = var.avi_default_password
     Lab_avi_admin_password        = var.avi_admin_password
     Lab_avi_backup_admin_username = var.avi_backup_admin_username
     Lab_avi_backup_admin_password = var.avi_backup_admin_password
-    Lab_avi_management_network    = "${var.id}_management_network"
-    Lab_avi_vip_network           = "${var.id}_VIP_network"
+    Lab_avi_management_network    = azurerm_subnet.avi_mgmtnet.name 
+    Lab_avi_vip_network           = azurerm_subnet.avi_pubnet.name
     Lab_Noshut                    = "jumpbox"
     Lab_Timezone                  = var.lab_timezone
   }
