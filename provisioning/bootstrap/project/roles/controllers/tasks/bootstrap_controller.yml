@@ -69,30 +69,29 @@
       username: "{{ hostvars['jumpbox.student.lab']['Lab_avi_backup_admin_username'] }}"
       password: "{{ hostvars['jumpbox.student.lab']['Lab_avi_backup_admin_password'] }}"
 
-- name: Define AWS cloud configuration
+- name: Define Azure cloud configuration
   avi_cloud:
     avi_credentials: "{{ avi_credentials }}"
-    name: AWS
-    vtype: CLOUD_AWS
-    aws_configuration:
-      use_iam_roles: true
-      region: "{{ hostvars['jumpbox.student.lab']['region'] }}"
-      vpc_id: "{{ hostvars['jumpbox.student.lab']['Lab_vpc_id'] }}"
-      zones:
-        - availability_zone: "{{ hostvars['jumpbox.student.lab']['availabilityZone'] }}"
-          mgmt_network_name: "{{ hostvars['jumpbox.student.lab']['Lab_avi_management_network'] }}"
+    name: AZURE
+    vtype: CLOUD_AZURE
+    azure_configuration:
+      resource_group: "{{ hostvars['jumpbox.student.lab']['resourceGroupName'] }}"
+      subscription_id: "{{ hostvars['jumpbox.student.lab']['Lab_subscription_id'] }}"
+      location: "{{ hostvars['jumpbox.student.lab']['location'] }}" 
+      network_info:
+        - virtual_network_id: "{{ hostvars['jumpbox.student.lab']['Lab_vnet_id'] }}"  
+          se_network_id: "{{ hostvars['jumpbox.student.lab']['Lab_avi_management_network'] }}"
     custom_tags:
       - tag_val: "{{ hostvars['jumpbox.student.lab']['Owner'] }}"
         tag_key: Owner
       - tag_val: "{{ hostvars['jumpbox.student.lab']['Lab_Timezone'] }}"
         tag_key: Lab_Timezone
 
-- name: Update SEG Default-Group EC2 instance type
+- name: Update SEG Default-Group
   avi_serviceenginegroup:
     avi_credentials: "{{ avi_credentials }}"
-    cloud_ref: "/api/cloud?name=AWS"
+    cloud_ref: "/api/cloud?name=AZURE"
     name: Default-Group
-    instance_flavor: t2.medium
     se_name_prefix: "{{ inventory_hostname.split('.')[1] }}"
 
 - name: Update the backup passphrase

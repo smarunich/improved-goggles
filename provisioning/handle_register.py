@@ -46,6 +46,10 @@ class instance_tags(object):
                 key = tag.split(':')[0]
                 value = tag.split(':')[1]
                 setattr(self.identity, key, value) 
+            for key, value in self.identity()['compute'].iteritems():
+		setattr(self.identity, key, value)
+            for key, value in self.identity()['network'].iteritems():
+		setattr(self.identity, key, value)
 
     def get_aws_tags(self, instance_id):
         self.ec2 = boto3.client('ec2', self.identity.region)
