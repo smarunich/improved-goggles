@@ -94,7 +94,7 @@ resource "azurerm_virtual_machine_extension" "ctrl" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-        "commandToExecute": "cd /tmp && curl -O http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/register.py && chmod a+x /tmp/register.py && /tmp/register.py ${azurerm_network_interface.jumpbox_nic.private_ip_address}"
+        "commandToExecute": "rm -rf /var/lib/avi/etc/flushdb.done && /opt/avi/scripts/flushdb.sh && cd /tmp && curl -O http://${azurerm_network_interface.jumpbox_nic.private_ip_address}/register.py && chmod a+x /tmp/register.py && /tmp/register.py ${azurerm_network_interface.jumpbox_nic.private_ip_address}"
     }
 SETTINGS
 
