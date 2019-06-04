@@ -84,7 +84,7 @@ resource "azurerm_virtual_machine" "ctrl" {
 }
 
 resource "azurerm_virtual_machine_extension" "ctrl" {
-  count                = var.server_count
+  count                = var.student_count
   name                 = "${var.id}_student${count.index + 1}_controller"
   location             = var.location
   resource_group_name  = azurerm_resource_group.avi_resource_group.name
